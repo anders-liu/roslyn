@@ -3,12 +3,14 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal static class SymbolAnalysisContextExtensions
     {
-        public static async Task<NamingStylePreferences> GetNamingStylePreferencesAsync(
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(
             this SymbolAnalysisContext context)
         {
             var location = context.Symbol.Locations.FirstOrDefault();
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             var optionSet = await context.Options.GetDocumentOptionSetAsync(location.SourceTree, context.CancellationToken).ConfigureAwait(false);
-            return optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
+            return optionSet?.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Windows.Automation;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -13,33 +13,38 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            this.SubmitText(@"#r ""System.Windows.Forms""
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+            VisualStudio.InteractiveWindow.SubmitText(@"#r ""System.Windows.Forms""
 #r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
 #r ""System.Xaml""");
 
-            this.SubmitText(@"using System.Windows;
+            VisualStudio.InteractiveWindow.SubmitText(@"using System.Windows;
 using System.Windows.Forms;
 using Wpf = System.Windows.Controls;");
         }
 
-        [Fact]
+        [WpfFact]
         public void InteractiveWithDisplayFormAndWpfWindow()
         {
             // 1) Create and display form and WPF window
-            this.SubmitText(@"Form form = new Form();
+            VisualStudio.InteractiveWindow.SubmitText(@"Form form = new Form();
 form.Text = ""win form text"";
 form.Show();
 Window wind = new Window();
 wind.Title = ""wpf window text"";
 wind.Show();");
 
-            AutomationElement form =  AutomationElementHelper.FindAutomationElementAsync("win form text").Result;
-            AutomationElement  wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
+            var form =  AutomationElementHelper.FindAutomationElementAsync("win form text").Result;
+            var  wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
 
             // 3) Add UI elements to windows and verify
-            this.SubmitText(@"// add a label to the form
+            VisualStudio.InteractiveWindow.SubmitText(@"// add a label to the form
 Label l = new Label();
 l.Text = ""forms label text"";
 form.Controls.Add(l);
@@ -48,14 +53,14 @@ Wpf.TextBlock t = new Wpf.TextBlock();
 t.Text = ""wpf body text"";
 wind.Content = t;");
 
-            AutomationElement formLabel = form.FindDescendantByPath("text");
-            Assert.Equal("forms label text", formLabel.Current.Name);
+            var formLabel = form.FindDescendantByPath("text");
+            Assert.Equal("forms label text", formLabel.CurrentName);
 
-            AutomationElement wpfContent = wpf.FindDescendantByPath("text");
-            Assert.Equal("wpf body text", wpfContent.Current.Name);
+            var wpfContent = wpf.FindDescendantByPath("text");
+            Assert.Equal("wpf body text", wpfContent.CurrentName);
 
             // 4) Close windows
-            this.SubmitText(@"form.Close();
+            VisualStudio.InteractiveWindow.SubmitText(@"form.Close();
 wind.Close();");
         }
     }

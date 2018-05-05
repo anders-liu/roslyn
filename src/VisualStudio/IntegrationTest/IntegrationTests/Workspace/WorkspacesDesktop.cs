@@ -3,7 +3,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
@@ -15,29 +17,30 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void OpenCSharpThenVBSolution()
         {
             base.OpenCSharpThenVBSolution();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void MetadataReference()
         {
             base.MetadataReference();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void ProjectReference()
         {
             base.ProjectReference();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void ProjectProperties()
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
-            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
             base.ProjectProperties();
         }
     }

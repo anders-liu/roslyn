@@ -2,12 +2,10 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -18,15 +16,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.Instance.ChangeSignatureDialog;
+        private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.ChangeSignatureDialog;
 
         public BasicChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(BasicChangeSignatureDialog))
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -35,11 +32,11 @@ Class C
     End Sub
 End Class");
 
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Change signature...", applyFix: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -52,7 +49,7 @@ End Class");
             ChangeSignatureDialog.VerifyOpen();
             ChangeSignatureDialog.ClickCancel();
             ChangeSignatureDialog.VerifyClosed();
-            var actualText = Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 Class C
     Sub Method(a As Integer, b As String)
@@ -60,7 +57,7 @@ Class C
 End Class", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -75,7 +72,7 @@ End Class");
             ChangeSignatureDialog.ClickDownButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actualText = Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 Class C
     Sub Method(b As String, a As Integer)
@@ -83,7 +80,7 @@ Class C
 End Class", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderAndRemoveParametersAcrossLanguages()
         {
             SetUpEditor(@"
@@ -94,8 +91,8 @@ Class VBTest
     End Sub
 End Class");
             var csharpProject = new ProjectUtils.Project("CSharpProject");
-            this.AddProject(WellKnownProjectTemplates.ClassLibrary, csharpProject, LanguageNames.CSharp);
-            Editor.SetText(@"
+            VisualStudio.SolutionExplorer.AddProject(csharpProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            VisualStudio.Editor.SetText(@"
 public class CSharpClass
 {
     /// <summary>
@@ -110,13 +107,13 @@ public class CSharpClass
         return 1;
     }
 }");
-            this.SaveAll();
+            VisualStudio.SolutionExplorer.SaveAll();
             var project = new ProjectUtils.Project(ProjectName);
             var csharpProjectReference = new ProjectUtils.ProjectReference("CSharpProject");
-            this.AddProjectReference(project, csharpProjectReference);
-            this.OpenFile("Class1.vb", project);
+            VisualStudio.SolutionExplorer.AddProjectReference(project, csharpProjectReference);
+            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.vb");
 
-            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
 
             ChangeSignatureDialog.Invoke();
             ChangeSignatureDialog.VerifyOpen();
@@ -131,10 +128,10 @@ public class CSharpClass
             ChangeSignatureDialog.ClickRestoreButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actualText = Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"x.Method(""str"")", actualText);
-            this.OpenFile("Class1.cs", csharpProject);
-            actualText = Editor.GetText();
+            VisualStudio.SolutionExplorer.OpenFile(csharpProject, "Class1.cs");
+            actualText = VisualStudio.Editor.GetText();
             var expectedText = @"
 public class CSharpClass
 {

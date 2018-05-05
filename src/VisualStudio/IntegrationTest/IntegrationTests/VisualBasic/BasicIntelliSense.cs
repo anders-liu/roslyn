@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Options;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -21,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IntelliSenseTriggersOnParenWithBraceCompletionAndCorrectUndoMerging()
         {
             SetUpEditor(@"
@@ -31,12 +29,12 @@ Module Module1
     End Sub
 End Module");
 
-            this.SetUseSuggestionMode(false);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            this.SendKeys("dim q as lis(");
-            this.VerifyCompletionItemExists("Of");
+            VisualStudio.SendKeys.Send("dim q as lis(");
+            VisualStudio.Editor.Verify.CompletionItemsExist("Of");
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List($$)
@@ -44,11 +42,11 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            this.SendKeys(
+            VisualStudio.SendKeys.Send(
                 VirtualKey.Down,
                 VirtualKey.Tab);
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of$$)
@@ -56,12 +54,12 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            this.SendKeys(" inte");
-            this.VerifyCompletionItemExists("Integer");
+            VisualStudio.SendKeys.Send(" inte");
+            VisualStudio.Editor.Verify.CompletionItemsExist("Integer");
 
-            this.SendKeys(')');
+            VisualStudio.SendKeys.Send(')');
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of Integer)$$
@@ -69,9 +67,9 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            this.SendKeys(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of inte)$$
@@ -79,9 +77,9 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            this.SendKeys(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of inte$$)
@@ -89,9 +87,9 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            this.SendKeys(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of$$)
@@ -99,9 +97,9 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            this.SendKeys(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As lis($$)
@@ -109,9 +107,9 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            this.SendKeys(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As lis($$
@@ -120,7 +118,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TypeAVariableDeclaration()
         {
             SetUpEditor(@"
@@ -130,52 +128,52 @@ Module Module1
     End Sub
 End Module");
 
-            this.SetUseSuggestionMode(false);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            this.SendKeys("dim");
-            this.VerifyCompletionItemExists("Dim", "ReDim");
+            VisualStudio.SendKeys.Send("dim");
+            VisualStudio.Editor.Verify.CompletionItemsExist("Dim", "ReDim");
 
-            this.SendKeys(' ');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send(' ');
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys('i');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send('i');
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys(' ');
-            this.VerifyCompletionItemExists("As");
+            VisualStudio.SendKeys.Send(' ');
+            VisualStudio.Editor.Verify.CompletionItemsExist("As");
 
-            this.SendKeys("a ");
-            this.SendKeys("intege");
-            this.VerifyCompletionItemExists("Integer", "UInteger");
+            VisualStudio.SendKeys.Send("a ");
+            VisualStudio.SendKeys.Send("intege");
+            VisualStudio.Editor.Verify.CompletionItemsExist("Integer", "UInteger");
 
-            this.SendKeys(' ');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send(' ');
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys('=');
-            Assert.Equal(true, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send('=');
+            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys(' ');
-            Assert.Equal(true, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send(' ');
+            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys("fooo");
-            Assert.Equal(false, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send("fooo");
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys(' ');
-            Assert.Equal(true, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send(' ');
+            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys(VirtualKey.Backspace);
-            Assert.Equal(false, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send(VirtualKey.Backspace);
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys(VirtualKey.Backspace);
-            Assert.Equal(true, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send(VirtualKey.Backspace);
+            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
-            this.SendKeys(
+            VisualStudio.SendKeys.Send(
                 VirtualKey.Left,
                 VirtualKey.Delete);
-            Assert.Equal(true, Editor.IsCompletionActive());
+            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DismissIntelliSenseOnApostrophe()
         {
             SetUpEditor(@"
@@ -185,14 +183,14 @@ Module Module1
     End Sub
 End Module");
 
-            this.SetUseSuggestionMode(false);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            this.SendKeys("dim q as ");
-            this.VerifyCompletionItemExists("_AppDomain");
+            VisualStudio.SendKeys.Send("dim q as ");
+            VisualStudio.Editor.Verify.CompletionItemsExist("_AppDomain");
 
-            this.SendKeys("'");
-            Assert.Equal(false, Editor.IsCompletionActive());
-            var actualText = Editor.GetText();
+            VisualStudio.SendKeys.Send("'");
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Module Module1
     Sub Main()
         Dim q As '
@@ -200,22 +198,22 @@ End Module");
 End Module", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TypeLeftAngleAfterImports()
         {
             SetUpEditor(@"
 Imports$$");
 
-            this.SetUseSuggestionMode(false);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            this.SendKeys(' ');
-            this.VerifyCompletionItemExists("Microsoft", "System");
+            VisualStudio.SendKeys.Send(' ');
+            VisualStudio.Editor.Verify.CompletionItemsExist("Microsoft", "System");
 
-            this.SendKeys('<');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            VisualStudio.SendKeys.Send('<');
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DismissAndRetriggerIntelliSenseOnEquals()
         {
             SetUpEditor(@"
@@ -225,16 +223,16 @@ Module Module1
     End Function
 End Module");
 
-            this.SetUseSuggestionMode(false);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            this.SendKeys('M');
-            this.VerifyCompletionItemExists("M");
+            VisualStudio.SendKeys.Send('M');
+            VisualStudio.Editor.Verify.CompletionItemsExist("M");
 
-            this.SendKeys("=v");
-            this.VerifyCompletionItemExists("val");
+            VisualStudio.SendKeys.Send("=v");
+            VisualStudio.Editor.Verify.CompletionItemsExist("val");
 
-            this.SendKeys(' ');
-            this.VerifyTextContains(@"
+            VisualStudio.SendKeys.Send(' ');
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Function M(val As Integer) As Integer
         M=val $$
@@ -243,23 +241,23 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
-            this.SetUseSuggestionMode(false);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            this.SendKeys("Nam Foo");
-            this.VerifyCurrentLineText("Namespace Foo$$", assertCaretPosition: true);
+            VisualStudio.SendKeys.Send("Nam Foo");
+            VisualStudio.Editor.Verify.CurrentLineText("Namespace Foo$$", assertCaretPosition: true);
 
             ClearEditor();
 
-            this.ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
 
-            this.SendKeys("Nam Foo");
-            this.VerifyCurrentLineText("Nam Foo$$", assertCaretPosition: true);
+            VisualStudio.SendKeys.Send("Nam Foo");
+            VisualStudio.Editor.Verify.CurrentLineText("Nam Foo$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EnterTriggerCompletionListAndImplementInterface()
         {
             SetUpEditor(@"
@@ -272,14 +270,14 @@ Public Class Bar
 
 End Class");
 
-            this.SetUseSuggestionMode(false);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            this.SendKeys(" UF");
-            this.VerifyCompletionItemExists("UFoo");
+            VisualStudio.SendKeys.Send(" UF");
+            VisualStudio.Editor.Verify.CompletionItemsExist("UFoo");
 
-            this.SendKeys(VirtualKey.Enter);
-            Assert.Equal(false, Editor.IsCompletionActive());
-            var actualText = Editor.GetText();
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 Interface UFoo
     Sub FooBar()

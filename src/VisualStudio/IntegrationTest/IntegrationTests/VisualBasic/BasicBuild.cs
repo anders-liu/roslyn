@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -11,13 +14,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     public class BasicBuild : AbstractIntegrationTest
     {
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, _=> null)
+            : base(instanceFactory)
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            var testProj = new ProjectUtils.Project("TestProj");
+            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"Module Program
@@ -28,7 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
 End Module";
 
-            VisualStudio.Instance.Editor.SetText(editorText);
+            VisualStudio.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

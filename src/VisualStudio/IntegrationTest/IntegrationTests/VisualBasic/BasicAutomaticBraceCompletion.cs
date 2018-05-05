@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -19,81 +19,81 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_InsertionAndTabCompleting()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim x = {");
-            this.VerifyCurrentLineText("Dim x = {$$}", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Dim x = {");
+             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {$$}", assertCaretPosition: true);
 
-            this.SendKeys(
+             VisualStudio.Editor.SendKeys(
                 "New Object",
                 VirtualKey.Escape,
                 VirtualKey.Tab);
 
-            this.VerifyCurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
+             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_Overtyping()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim x = {");
-            this.SendKeys('}');
-            this.VerifyCurrentLineText("Dim x = {}$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Dim x = {");
+             VisualStudio.Editor.SendKeys('}');
+             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {}$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ParenthesesTypeoverAfterStringLiterals()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Console.Write(");
-            this.VerifyCurrentLineText("Console.Write($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Console.Write(");
+             VisualStudio.Editor.Verify.CurrentLineText("Console.Write($$)", assertCaretPosition: true);
 
-            this.SendKeys('"');
-            this.VerifyCurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys('"');
+             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
 
-            this.SendKeys('"');
-            this.VerifyCurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys('"');
+             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
 
-            this.SendKeys(')');
-            this.VerifyCurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys(')');
+             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim x = {");
-            this.SendKeys(VirtualKey.Enter);
-            this.VerifyCurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
-            this.VerifyTextContains(@"
+             VisualStudio.Editor.SendKeys("Dim x = {");
+             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+             VisualStudio.Editor.Verify.CurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
+             VisualStudio.Editor.Verify.TextContains(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = {
             $$}
     End Sub
@@ -101,7 +101,7 @@ End Class",
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Paren_InsertionAndTabCompleting()
         {
             SetUpEditor(@"
@@ -109,16 +109,16 @@ Class C
     $$
 End Class");
 
-            this.SendKeys("Sub Foo(");
-            this.VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Sub Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
-            this.SendKeys("x As Long");
-            this.SendKeys(VirtualKey.Escape);
-            this.SendKeys(VirtualKey.Tab);
-            this.VerifyCurrentLineText("Sub Foo(x As Long)$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("x As Long");
+             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo(x As Long)$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Paren_Overtyping()
         {
             SetUpEditor(@"
@@ -126,63 +126,63 @@ Class C
     $$
 End Class");
 
-            this.SendKeys("Sub Foo(");
-            this.VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Sub Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
-            this.SendKeys(VirtualKey.Escape);
-            this.SendKeys(')');
-            this.VerifyCurrentLineText("Sub Foo()$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+             VisualStudio.Editor.SendKeys(')');
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo()$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Bracket_Insertion()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim [Dim");
-            this.VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Dim [Dim");
+             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Bracket_Overtyping()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim [Dim");
-            this.VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Dim [Dim");
+             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
 
-            this.SendKeys("] As Long");
-            this.VerifyCurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("] As Long");
+             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoubleQuote_InsertionAndTabCompletion()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim str = \"");
-            this.VerifyCurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Dim str = \"");
+             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
 
-            this.SendKeys(VirtualKey.Tab);
-            this.VerifyCurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Nested_AllKinds_1()
         {
             SetUpEditor(@"
@@ -190,21 +190,21 @@ Class C
     Sub New([dim] As String)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys(
+             VisualStudio.Editor.SendKeys(
                 "Dim y = {New C([dim",
                 VirtualKey.Escape,
                 "]:=\"hello({[\")}",
                 VirtualKey.Enter);
-            var actualText = Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Nested_AllKinds_2()
         {
             SetUpEditor(@"
@@ -212,12 +212,12 @@ Class C
     Sub New([dim] As String)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys(
+             VisualStudio.Editor.SendKeys(
                 "Dim y = {New C([dim",
                 VirtualKey.Escape,
                 VirtualKey.Tab,
@@ -226,39 +226,39 @@ End Class");
                 VirtualKey.Tab,
                 VirtualKey.Tab,
                 VirtualKey.Enter);
-            var actualText = Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInComments()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         ' $$
     End Sub
 End Class");
 
-            this.SendKeys("{([\"");
-            this.VerifyCurrentLineText("' {([\"$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("{([\"");
+             VisualStudio.Editor.Verify.CurrentLineText("' {([\"$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInStringLiterals()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim s = \"{([");
-            this.VerifyCurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Dim s = \"{([");
+             VisualStudio.Editor.Verify.CurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInXmlDocComment()
         {
             SetUpEditor(@"
@@ -266,15 +266,15 @@ $$
 Class C
 End Class");
 
-            this.SendKeys("'''");
-            this.SendKeys('{');
-            this.SendKeys('(');
-            this.SendKeys('[');
-            this.SendKeys('"');
-            this.VerifyCurrentLineText("''' {([\"$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("'''");
+             VisualStudio.Editor.SendKeys('{');
+             VisualStudio.Editor.SendKeys('(');
+             VisualStudio.Editor.SendKeys('[');
+             VisualStudio.Editor.SendKeys('"');
+             VisualStudio.Editor.Verify.CurrentLineText("''' {([\"$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInXmlDocCommentAtEndOfTag()
         {
             SetUpEditor(@"
@@ -282,73 +282,73 @@ Class C
     ''' <summary>
     ''' <see></see>$$
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class");
 
-            this.SendKeys("(");
-            this.VerifyCurrentLineText("''' <see></see>($$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("(");
+             VisualStudio.Editor.Verify.CurrentLineText("''' <see></see>($$", assertCaretPosition: true);
         }
 
         [WorkItem(652015, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void LineCommittingIssue()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Dim x=\"\" '");
-            this.VerifyCurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Dim x=\"\" '");
+             VisualStudio.Editor.Verify.CurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
         }
 
         [WorkItem(653399, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VirtualWhitespaceIssue()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()$$
+    Sub Goo()$$
     End Sub
 End Class");
 
-            this.SendKeys(VirtualKey.Enter);
-            this.SendKeys('(');
-            this.SendKeys(VirtualKey.Backspace);
+             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+             VisualStudio.Editor.SendKeys('(');
+             VisualStudio.Editor.SendKeys(VirtualKey.Backspace);
 
-            this.VerifyCurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
+             VisualStudio.Editor.Verify.CurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
         }
 
         [WorkItem(659684, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void CompletionWithIntelliSenseWindowUp()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Test()
         $$
     End Sub
 End Class");
 
-            this.SendKeys("Foo(");
-            this.VerifyCurrentLineText("Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Goo($$)", assertCaretPosition: true);
         }
 
         [WorkItem(657451, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void CompletionAtTheEndOfFile()
         {
             SetUpEditor(@"
 Class C
     $$");
 
-            this.SendKeys("Sub Foo(");
-            this.VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Sub Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
         }
     }
 }

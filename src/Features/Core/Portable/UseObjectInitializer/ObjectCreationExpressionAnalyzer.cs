@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -105,6 +107,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
+                var leftSymbol = _semanticModel.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();
+                if (leftSymbol?.IsStatic == true)
+                {
+                    // Static members cannot be initialized through an object initializer.
+                    break;
+                }
+
                 // Don't offer this fix if the value we're initializing is itself referenced
                 // on the RHS of the assignment.  For example:
                 //
@@ -154,6 +163,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     statement, leftMemberAccess, rightExpression));
             }
         }
+
+        protected override bool ShouldAnalyze() => true;
 
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {

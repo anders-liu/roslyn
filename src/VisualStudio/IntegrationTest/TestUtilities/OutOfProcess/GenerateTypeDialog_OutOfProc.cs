@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using System.Windows.Automation;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -18,22 +17,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void VerifyOpen()
         {
-            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true);
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true);
 
             if (dialog == null)
             {
                 throw new InvalidOperationException($"Expected the '{GenerateTypeDialogID}' dialog to be open but it is not.");
             }
+
+            // Wait for application idle to ensure the dialog is fully initialized
+            VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
 
         public void VerifyClosed()
         {
-            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: false);
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: false);
 
             if (dialog != null)
             {
                 throw new InvalidOperationException($"Expected the '{GenerateTypeDialogID}' dialog to be closed but it is not.");
             }
+        }
+
+        public bool CloseWindow()
+        {
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true, wait: false);
+            if (dialog == null)
+            {
+                return false;
+            }
+
+            ClickCancel();
+            return true;
         }
 
         public void SetAccessibility(string accessibility)
@@ -69,7 +83,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickOK()
         {
             DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "OK");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -78,12 +92,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel()
         {
             DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "Cancel");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         public string[] GetNewFileComboBoxItems()
         {
-            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), GenerateTypeDialogID);
+            var dialog = DialogHelpers.GetOpenDialogById(GetMainWindowHWnd(), GenerateTypeDialogID);
             var createNewFileComboBox = dialog.FindDescendantByAutomationId("CreateNewFileComboBox");
             createNewFileComboBox.Expand();
 
@@ -91,10 +105,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             createNewFileComboBox.Collapse();
 
-            return children.Cast<AutomationElement>().Select(element => element.Current.Name).ToArray();
+            var result = new string[children.Length];
+            for (int i = 0; i < children.Length; i++)
+            {
+                result[i] = children.GetElement(i).CurrentName;
+            }
+
+            return result;
         }
 
-        private int GetMainWindowHWnd()
+        private IntPtr GetMainWindowHWnd()
         {
             return VisualStudioInstance.Shell.GetHWnd();
         }

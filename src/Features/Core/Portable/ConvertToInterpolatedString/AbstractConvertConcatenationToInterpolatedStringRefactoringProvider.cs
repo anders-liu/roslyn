@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // The string literal has to at least be contained in a concatenation of some form.
-            // i.e.  "foo" + a      or     a + "foo".  However, those concats could be in larger
+            // i.e.  "goo" + a      or     a + "goo".  However, those concats could be in larger
             // concats as well.  Walk to the top of that entire chain.
 
             var literalExpression = token.Parent;
@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return false;
             }
 
-            var method = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol as IMethodSymbol;
-            return method?.MethodKind == MethodKind.BuiltinOperator &&
-                   method.ContainingType.SpecialType == SpecialType.System_String &&
+            return semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is IMethodSymbol method &&
+                   method.MethodKind == MethodKind.BuiltinOperator &&
+                   method.ContainingType?.SpecialType == SpecialType.System_String &&
                    (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
                     method.MetadataName == WellKnownMemberNames.ConcatenateOperatorName);
         }

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -20,31 +19,33 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19530"), Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void NavigateTo()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.AddFile("test1.vb", project: project, open: false, contents: @"
+            var csProject = new ProjectUtils.Project("CSProject");
+            VisualStudio.SolutionExplorer.AddFile(project, "test1.vb", open: false, contents: @"
 Class FirstClass
     Sub FirstMethod()
     End Sub
 End Class");
 
 
-            this.AddFile("test2.vb", project: project, open: true, contents: @"
+            VisualStudio.SolutionExplorer.AddFile(project, "test2.vb", open: true, contents: @"
 ");
-
-            this.InvokeNavigateToAndPressEnter("FirstMethod");
-            Editor.WaitForActiveView("test1.vb");
-            Assert.Equal("FirstMethod", Editor.GetSelectedText());
+            VisualStudio.Editor.InvokeNavigateTo("FirstMethod");
+            VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+            VisualStudio.Editor.WaitForActiveView("test1.vb");
+            Assert.Equal("FirstMethod", VisualStudio.Editor.GetSelectedText());
 
             // Verify C# files are found when navigating from VB
-            VisualStudio.Instance.SolutionExplorer.AddProject("CSProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
-            VisualStudio.Instance.SolutionExplorer.AddFile("CSProject", "csfile.cs", open: true);
+             VisualStudio.SolutionExplorer.AddProject(csProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+             VisualStudio.SolutionExplorer.AddFile(csProject, "csfile.cs", open: true);
 
-            this.InvokeNavigateToAndPressEnter("FirstClass");
-            Editor.WaitForActiveView("test1.vb");
-            Assert.Equal("FirstClass", Editor.GetSelectedText());
+            VisualStudio.Editor.InvokeNavigateTo("FirstClass");
+            VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+            VisualStudio.Editor.WaitForActiveView("test1.vb");
+            Assert.Equal("FirstClass", VisualStudio.Editor.GetSelectedText());
         }
     }
 }

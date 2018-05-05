@@ -2,12 +2,13 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact(Skip="https://github.com/dotnet/roslyn/issues/17631"), Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
             SetUpEditor(@"
@@ -33,12 +34,12 @@ Class Program
 End Class
 ");
 
-            this.SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
 
             const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
@@ -60,7 +61,7 @@ End Class
                 });
         }
 
-        [Fact(Skip="https://github.com/dotnet/roslyn/issues/17631"), Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToSharedField()
         {
             SetUpEditor(@"
@@ -68,9 +69,9 @@ Class Program
     Public Shared Alpha As Int32
 End Class$$
 ");
-
-            VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, "File2.vb");
-            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "File2.vb");
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "File2.vb");
+            VisualStudio.SolutionExplorer.OpenFile(project, "File2.vb");
 
             SetUpEditor(@"
 Class SomeOtherClass
@@ -80,12 +81,12 @@ Class SomeOtherClass
 End Class
 ");
 
-            this.SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
 
             const string alphaReferencesCaption = "'Alpha' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(alphaReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(alphaReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: alphaReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(

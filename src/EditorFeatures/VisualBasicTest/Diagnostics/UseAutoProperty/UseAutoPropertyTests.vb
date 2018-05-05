@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseAut
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New UseAutoPropertyAnalyzer(), New UseAutoPropertyCodeFixProvider())
+            Return (New VisualBasicUseAutoPropertyAnalyzer(), New VisualBasicUseAutoPropertyCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -41,6 +41,23 @@ end class")
 end class",
 "class Class1
     readonly property P as integer
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestSingleGetter3() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    shared dim i as Integer
+    [|shared property P as integer
+        get
+            return i
+        end get
+    end property|]
+end class",
+"class Class1
+    shared ReadOnly property P as integer
 end class")
         End Function
 
@@ -86,7 +103,8 @@ end class")
     end property|]
 end class",
 "class Class1
-    readonly property P as integer = 1
+    readonly property P as integer
+= 1
 end class")
         End Function
 
@@ -102,6 +120,37 @@ end class")
     end property
 end class",
 New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9)))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestInitializer_AsNew() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    dim i as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+    [|readonly property P as Guid
+        get
+            return i
+        end get
+    end property|]
+end class",
+"class Class1
+    readonly property P as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestInitializer_AsNewDifferentType() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    dim i as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+    [|readonly property P as Object
+        get
+            return i
+        end get
+    end property|]
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -207,7 +256,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         get
-            Foo()
+            Goo()
             return i
         end get
     end property
@@ -221,7 +270,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -239,7 +288,7 @@ end class")
         end get
 
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -463,7 +512,7 @@ end class")
 end class",
 "class Class1
     ReadOnly property P as Integer
-    public sub new(dim P as integer)
+ public sub new(dim P as integer)
         Me.P = 1
     end sub
 end class")
@@ -500,7 +549,7 @@ end class")
         get
             return i
  end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class")
@@ -515,7 +564,7 @@ end class")
         get
             return i
  \end property 
- public sub Foo()
+ public sub Goo()
         i = 1
     end sub
 end class")
@@ -534,14 +583,15 @@ end class")
             i = value
         end set
     end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class",
 "class Class1
     public property P as Integer
-    public sub Foo() P = 1 
- end sub
+    public sub Goo()
+        P = 1
+    end sub
 end class")
         End Function
 
@@ -550,6 +600,85 @@ end class")
             Await TestMissingInRegularAndScriptAsync("Class Class1
     Public Property [|P|] As Integer
 End Class")
+        End Function
+
+        <WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function ExplicitInterfaceImplementation() As Task
+            Await TestInRegularAndScriptAsync("
+Namespace RoslynSandbox
+    Public Interface IFoo
+        ReadOnly Property Bar() As Object
+    End Interface
+
+    Friend Class Foo
+        Implements IFoo
+
+        Private [|_bar|] As Object
+
+		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+            Get
+                Return _bar
+            End Get
+        End Property
+
+        Public Sub New(bar As Object)
+            _bar = bar
+        End Sub
+    End Class
+End Namespace
+",
+"
+Namespace RoslynSandbox
+    Public Interface IFoo
+        ReadOnly Property Bar() As Object
+    End Interface
+
+    Friend Class Foo
+        Implements IFoo
+
+		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+
+        Public Sub New(bar As Object)
+            Me.Bar = bar
+        End Sub
+    End Class
+End Namespace
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
+        Public Async Function TestGetterAccessibilityDiffers() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer|]
+    property P as Integer
+        protected get
+            return i
+        end get
+        set
+            i = value
+        end set
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
+        Public Async Function TestSetterAccessibilityDiffers() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer|]
+    property P as Integer
+        get
+            return i
+        end get
+        protected set
+            i = value
+        end set
+    end property
+end class")
         End Function
     End Class
 End Namespace

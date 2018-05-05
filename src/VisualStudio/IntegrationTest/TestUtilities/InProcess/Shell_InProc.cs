@@ -13,25 +13,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetActiveWindowCaption()
             => InvokeOnUIThread(() => GetDTE().ActiveWindow.Caption);
 
-        public int GetHWnd()
-            => GetDTE().MainWindow.HWnd;
+        public IntPtr GetHWnd()
+            => (IntPtr)GetDTE().MainWindow.HWnd;
 
         public bool IsActiveTabProvisional()
             => InvokeOnUIThread(() =>
             {
                 var shellMonitorSelection = GetGlobalService<SVsShellMonitorSelection, IVsMonitorSelection>();
-                if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint) VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
+                if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
                 {
                     throw new InvalidOperationException("Tried to get the active document frame but no documents were open.");
                 }
 
                 var windowFrame = (IVsWindowFrame)windowFrameObject;
-                if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int) VsFramePropID.IsProvisional, out var isProvisionalObject)))
+                if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int)VsFramePropID.IsProvisional, out var isProvisionalObject)))
                 {
                     throw new InvalidOperationException("The active window frame did not have an 'IsProvisional' property.");
                 }
 
-                return (bool) isProvisionalObject;
+                return (bool)isProvisionalObject;
             });
     }
 }
